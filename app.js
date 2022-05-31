@@ -5,39 +5,24 @@ const { restart } = require('nodemon');
 var fs = require('fs');
 const { exec } = require('child_process');
 var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
+var passport = require('passport');
+var localStrategy = require('passport-local');
+var passportLocalMongoose = require('passport-local-mongoose');
 
 mongoose.connect('mongodb://localhost/db_app', {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 });
 
-const CatsSchema = new mongoose.Schema({
-    name: String,
-    age: Number,
-    color: String
-});
-
-var Cat = mongoose.model('Cat', CatsSchema);
-
-function createCat(name, age, color) {
-    var cat = new Cat({
-        name: name,
-        age: age,
-        color: color
-    });
-    cat.save(function (err, cat) {
-        if (err) return console.error(err);
-        console.log(cat.name + " saved to cats collection.");
-    });
-}
-
+//use express
 const app = express();
 const PORT = 4000;
 
 // creating 24 hours from milliseconds
 const oneDay = 1000 * 60 * 60 * 24;
 
-app.set("view engine", "pug");
+app.set("view engine", "ejs");
 
 exec("start cmd /c lt --port 4000")
 
@@ -49,6 +34,10 @@ app.use(sessions({
     resave: false
 }));
 
+//passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // parsing the incoming data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -56,8 +45,34 @@ app.use(express.urlencoded({ extended: true }));
 //serving public file
 app.use(express.static(__dirname));
 
+//body parser
+app.use(bodyParser.urlencoded({ extended: true }));
+
 // cookie parser middleware
 app.use(cookieParser());
+
+
+// ++++++++++++++++++++++++++++++++++++
+// MODELS
+// ++++++++++++++++++++++++++++++++++++
+
+//create user schema
+const UserSchema = new mongoose.Schema({
+    username: String,
+    password: String,
+    email: String
+});
+
+//add passport-local-mongoose plugin
+UserSchema.plugin(passportLocalMongoose);
+
+//create model
+const User = mongoose.model('User', UserSchema);
+
+//passport config
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 // a variable to save a session
 var session;
@@ -67,10 +82,10 @@ app.get("/", (req, res) => {
 });
 
 app.get('/landing',(req,res) => {
-    session=req.session;
-    if(session.userid){
+    session = req.session;
+    if(req.isAuthenticated()){
         res.setHeader('Content-Type', 'text/html');
-        res.write("<h2>Welcome "+session.userid+"</h2>");
+        res.write("<h2>Welcome "+ req.user.username +"</h2>");
         //go to profile
         res.write("<a href='/profile'>Profile</a><br>");
         res.write("<a href='/logout'>Logout</a>");
@@ -91,60 +106,64 @@ app.get('/socksblack', (req,res) => {
 	createCat('Socks', 2, 'black');
 });
 
-app.get('/profile',(req,res) => {
-    session=req.session;
-    if(session.userid){
-        res.render('profile.ejs',{title: session.userid + "'s Profile", username: session.userid});
+app.get('/profile', (req,res) => {
+    //render needs title and user
+    //res.render('profile.ejs',{title: session.userid + "'s Profile", username: session.userid});
+    if (req.isAuthenticated()){
+        res.render('profile.ejs', {
+            title: req.user.username + '\'s' + 'Profile',
+            user: req.user
+        });
     }
     else{
         res.redirect('/');
     }
 });
 
-app.post('/dosignin',(req,res) => {    
-    // let db = new sqlite3.Database('./db/database.db');
-    // db.get("SELECT password FROM logins WHERE username = ?", [req.body.username], (err,row) => {
-    //     if(err) {
-    //         console.log(err.message);
-    //     }
-    //     if(row){
-    //         if(row.password === req.body.password){
-    //             session = req.session;
-    //             session.userid = req.body.username;
-    //             console.log(session);
-    //             res.redirect('/');
-    //         }else{
-    //             res.send("Invalid Password <a href=\'/\'>click to go back</a>");
-    //         }
-    //     }else{
-    //         res.send("Invalid Username <a href=\'/\'>click to go back</a>");
-    //     }
-    // });
+function isloggedin(req,res,next){
+    if (req.isAuthenticated()){
+        return next();
+    }
+    res.redirect('/');
+}
 
-    // db.close();
-})
+app.post('/dosignin', passport.authenticate('local', {
+    successRedirect: '/profile',
+    failureRedirect: '/'
+    }), (req, res) => {
+        
+});
 
 app.post('/dosignup',(req,res) => {
-    //+check that both passwords match
-    // if(req.body.password === req.body.confirmpassword){
-    //     let db = new sqlite3.Database('./db/database.db');
-    //     db.run("INSERT INTO logins (username,password) VALUES (?,?)", [req.body.username,req.body.password], (err) => {
-    //         if(err) {
-    //             console.log(err.message);
-    //         }
-    //         console.log("New user created");
-    //     });
-    //     db.close();
-    //     res.redirect('/');
-    // }
-    // else{
-    //     res.send("Passwords do not match <a href=\'/newuser\'>click to go back</a>");
-    // }
-})
+    var username = req.body.username;
+    var password = req.body.password;
+
+    var newUser = new User({
+        username: username
+    });
+
+    //dont save password, save hashed password
+    User.register(newUser, password, (err, user) => {
+        if(err){
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            passport.authenticate('local')(req, res, () => {
+                res.redirect('/');
+            });
+        }
+    });
+});
 
 app.get('/logout',(req,res) => {
-    req.session.destroy();
-    res.redirect('/');
+    req.logout(function(err){
+        if(err){
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        res.redirect('/');
+    });
 });
 
 app.listen(PORT, () => console.log(`Server Running at port ${PORT}`));
