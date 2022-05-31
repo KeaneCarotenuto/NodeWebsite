@@ -1,0 +1,22 @@
+{
+  "name": "nodewebsite",
+  "version": "1.0.0",
+  "description": "Node based website",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/KeaneCarotenuto/NodeWebsite.git"
+  },
+  "author": "Keane Carotenuto",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KeaneCarotenuto/NodeWebsite/issues"
+  },
+  "homepage": "https://github.com/KeaneCarotenuto/NodeWebsite#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
