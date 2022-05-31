@@ -4,6 +4,32 @@ const sessions = require('express-session');
 const { restart } = require('nodemon');
 var fs = require('fs');
 const { exec } = require('child_process');
+var mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost/db_app', {
+	useNewUrlParser: true,
+	useUnifiedTopology: true,
+});
+
+const CatsSchema = new mongoose.Schema({
+    name: String,
+    age: Number,
+    color: String
+});
+
+var Cat = mongoose.model('Cat', CatsSchema);
+
+function createCat(name, age, color) {
+    var cat = new Cat({
+        name: name,
+        age: age,
+        color: color
+    });
+    cat.save(function (err, cat) {
+        if (err) return console.error(err);
+        console.log(cat.name + " saved to cats collection.");
+    });
+}
 
 const app = express();
 const PORT = 4000;
@@ -55,6 +81,10 @@ app.get('/landing',(req,res) => {
 
 app.get('/newuser',(req,res) => {
     res.sendFile('views/newuser.html',{root:__dirname})
+});
+
+app.get('/newcat', (req,res) => {
+	createCat('Fluffy', 2, 'white');
 });
 
 app.get('/profile',(req,res) => {
