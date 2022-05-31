@@ -83,8 +83,12 @@ app.get('/newuser',(req,res) => {
     res.sendFile('views/newuser.html',{root:__dirname})
 });
 
-app.get('/newcat', (req,res) => {
+app.get('/fullywhite', (req,res) => {
 	createCat('Fluffy', 2, 'white');
+});
+
+app.get('/socksblack', (req,res) => {
+	createCat('Socks', 2, 'black');
 });
 
 app.get('/profile',(req,res) => {
