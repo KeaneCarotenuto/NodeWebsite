@@ -1,6 +1,5 @@
 #!/bin/bash
-git fetch
-git pull --rebase
+git pull --ff-only
 clear
 echo 'Project ready!'
 node app.js
