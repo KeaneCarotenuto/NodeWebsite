@@ -2,3 +2,23 @@
 <%- include ("partials/header.ejs", {currentUser: currentUser}) %>
 <!-- Use bootstrap grid system to create a responsive page! -->
 
+<!-- for each post in allPosts, render it -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm">
+            <h2>Posts</h2>
+            <% if (currentUser) { %>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newPostModal">
+                    Create Post
+                </button>
+            <% } %>
+
+            <!-- newPost partial -->
+            <%- include ("partials/newPost.ejs", {user: currentUser}) %>
+
+            <% for (let post of allPosts) { %>
+                <%- include ("partials/post.ejs", {post: post, currentUser: currentUser, profileUser: post.user}) %>
+            <% } %>
+        </div>
+    </div>
+</div>
