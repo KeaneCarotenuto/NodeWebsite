@@ -1,20 +1,17 @@
 <!-- header partial -->
-<%- include ("partials/header.ejs", {user: user}) %>
+<%- include ("partials/header.ejs", {currentUser: currentUser}) %>
 <!-- Use bootstrap grid system to create a responsive page! -->
 
 <body>
   <!-- cenetered welcome jumbo with username-->
   <div class="jumbotron text-center">
-    <h1>Welcome, <%= user.username %>!</h1>
-    <p>
-      <% if (user.username === "admin") { %>
-        <a href="/admin" class="btn btn-primary">Admin</a>
-      <% } %>
-    </p>
-    <!-- edit profile button -->
+    <h1>Welcome to <%= profileUser.username %>'s Profile!</h1>
+    <!-- edit profile button if current user is profile user-->
+    <% if (currentUser && currentUser.username === profileUser.username) { %>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editProfileModal" onclick="function reset(){document.getElementById('newUsername').value = document.getElementById('username').dataset.username;}reset();">
       Edit Profile
     </button>
+    <% } %>
   </div>
 
   <!-- Use bootstrap grid system to create a responsive page! -->
@@ -38,7 +35,7 @@
                 <form action="/editprofile" method="post">
                   <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" class="form-control" id="newUsername" name="username" placeholder="New Username" value="<%= user.username %>">
+                    <input type="text" class="form-control" id="newUsername" name="username" placeholder="New Username" value="<%= profileUser.username %>">
                   </div>
                   <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
@@ -76,20 +73,22 @@ const postSchema = new mongoose.Schema({
     <!-- use fish and post schema above to make card -->
     <div class="row">
       <div class="col-sm">
-        <h2>Your Posts</h2>
-        <!-- create post button -->
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newPostModal">
-          Create Post
-        </button>
+        <h2>Posts</h2>
+        <!-- create post button if current user is profile user-->
+        <% if (currentUser && currentUser.username === profileUser.username) { %>
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newPostModal">
+            Create Post
+          </button>
+        <% } %>
 
         <!-- newPost partial -->
-        <%- include ("partials/newPost.ejs", {user: user}) %>
+        <%- include ("partials/newPost.ejs", {user: profileUser}) %>
 
         <!-- if no posts -->
-        <% if (user.posts.length === 0) { %>
-          <p>You have no posts!</p>
+        <% if (profileUser.posts.length === 0) { %>
+          <p>No posts!</p>
         <% } %>
-        <% for (let post of user.posts) { %>
+        <% for (let post of profileUser.posts) { %>
           <div class="card">
             <div class="card-body">
               <h5 class="card-title"><%= post.title %></h5>
@@ -99,12 +98,15 @@ const postSchema = new mongoose.Schema({
               <p class="card-text"><%= post.fishInfo.weight %></p>
               <p class="card-text"><%= post.createdAt %></p>
               <p class="card-text"><%= post.user.username %></p>
-              <!-- restful route for edit -->
-              <a href="/editpost/<%= post._id %>" class="btn btn-primary">Edit</a>
-              <!-- restful route for delete -->
-              <form action="/posts/<%= post._id %>?_method=DELETE" method="post">
-                <button type="submit" class="btn btn-danger">Delete</button>
-              </form>
+              <!-- if current user is profile user -->
+              <% if (currentUser && currentUser.username === profileUser.username) { %>
+                <!-- restful route for edit -->
+                <a href="/editpost/<%= post._id %>" class="btn btn-primary">Edit</a>
+                <!-- restful route for delete -->
+                <form action="/posts/<%= post._id %>?_method=DELETE" method="post">
+                  <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+              <% } %>
             </div>
           </div>
         <% } %>

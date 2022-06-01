@@ -48,10 +48,10 @@
                 </li>
             </ul>
 
-            <% if (user) { %>
+            <% if (currentUser) { %>
                 <!-- profile -->
                 <a class="nav-link" href="/profile">
-                    <%- user.username %>
+                    <%- currentUser.username %>
                 </a>
                 <!-- log out -->
                 <a class="nav-link" href="/logout">

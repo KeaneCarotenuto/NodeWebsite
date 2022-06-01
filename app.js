@@ -137,18 +137,18 @@ app.get('/login', (req, res) => {
         res.redirect('/profile');
     }
     else{
-        res.render('login.ejs', {user : req.user});
+        res.render('login.ejs', {currentUser : req.user});
     }
 });
 
 //sign up
 app.get('/newuser',(req,res) => {
-    res.render('newuser.ejs', {user : req.user});
+    res.render('newuser.ejs', {currentUser : req.user});
 });
 
 //feed
 app.get('/feed', (req, res) => {
-    res.render('feed.ejs', {user : req.user});
+    res.render('feed.ejs', {currentUser : req.user});
 });
 
 app.get('/fullywhite', (req,res) => {
@@ -159,21 +159,23 @@ app.get('/socksblack', (req,res) => {
 	createCat('Socks', 2, 'black');
 });
 
-app.get('/profile', (req,res) => {
+app.get('/profile/:username', (req,res) => {
     //render needs title and user
     //res.render('profile.ejs',{title: session.userid + "'s Profile", username: session.userid});
-    if (req.isAuthenticated()){
-        res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-        res.header('Expires', '-1');
-        res.header('Pragma', 'no-cache');
-        res.render('profile.ejs', {
-            title: req.user.username + '\'s' + 'Profile',
-            user: req.user
-        });
-    }
-    else{
-        res.redirect('/');
-    }
+    // if (!req.isAuthenticated()){
+    //     res.redirect('/');
+    // }
+
+    var username = req.params.username;
+
+    User.findOne({username: username}, (err, user) => {
+        if(err){
+            console.log(err);
+        }
+        else{
+            res.render('profile.ejs', {currentUser : req.user, profileUser : user});
+        }
+    });
 });
 
 function isloggedin(req,res,next){
