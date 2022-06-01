@@ -1,0 +1,47 @@
+<!-- Modal (create post) -->
+<div class="modal fade" id="newPostModal" tabindex="-1" role="dialog" aria-labelledby="newPostModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newPostModalLabel">Create Post</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action="/newpost" method="post">
+            <div class="form-group">
+              <label for="title">Title</label>
+              <input type="text" class="form-control" id="title" name="title" placeholder="Title" required>
+            </div>
+            <div class="form-group">
+              <label for="content">Content</label>
+              <textarea class="form-control" id="content" name="content" rows="3" placeholder="Content" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="fishInfo">Fish Info</label>
+              <row>
+                <div class="col">
+                  <label for="species">Species</label>
+                  <input type="text" class="form-control" id="species" name="species" placeholder="Species" required>
+                </div>
+                <div class="col">
+                  <label for="length">Length</label>
+                  <input type="number" class="form-control" id="length" name="length" placeholder="Length" required>
+                </div>
+                <div class="col">
+                  <label for="weight">Weight</label>
+                  <input type="number" class="form-control" id="weight" name="weight" placeholder="Weight" required>
+                </div>
+              </row>
+            </div>
+            <div class="form-group">
+              <label for="image">Image</label>
+              <input type="text" class="form-control" id="image" name="image" placeholder="Image URL">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
