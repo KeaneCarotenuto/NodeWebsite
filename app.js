@@ -81,6 +81,12 @@ const postSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
+    },
+
+    //temp username that gets updated when user logs in
+    username: {
+        type: String,
+        default: "Anonymous"
     }
 });
 
@@ -90,7 +96,7 @@ const UserSchema = new mongoose.Schema({
     //password: { type : String, required: true },
     email: String,
 
-    //posts
+    //list of post
     posts: [postSchema]
 });
 
@@ -118,18 +124,18 @@ passport.deserializeUser(User.deserializeUser());
 var session;
 
 app.get("/", (req, res) => {
-    res.redirect('/landing');
+    res.redirect('/feed');
 });
 
-app.get('/landing',(req,res) => {
-    session = req.session;
-    if(req.isAuthenticated()){
-        res.redirect('/feed');
-    }
-    else {
-        res.redirect('/login');
-    }
-});
+// app.get('/landing',(req,res) => {
+//     session = req.session;
+//     if(req.isAuthenticated()){
+//         res.redirect('/feed');
+//     }
+//     else {
+//         res.redirect('/login');
+//     }
+// });
 
 //login
 app.get('/login', (req, res) => {
@@ -148,7 +154,16 @@ app.get('/newuser',(req,res) => {
 
 //feed
 app.get('/feed', (req, res) => {
-    res.render('feed.ejs', {currentUser : req.user});
+    //get all of the posts and sort them by date
+    Post.find({}).sort({date: -1}).exec((err, posts) => {
+        if(err){
+            console.log(err);
+            return res.redirect('/');
+        }
+        else{
+            res.render('feed.ejs', {posts: posts, currentUser : req.user});
+        }
+    });
 });
 
 app.get('/fullywhite', (req,res) => {
@@ -159,20 +174,64 @@ app.get('/socksblack', (req,res) => {
 	createCat('Socks', 2, 'black');
 });
 
-app.get('/profile/:username', (req,res) => {
-    //render needs title and user
-    //res.render('profile.ejs',{title: session.userid + "'s Profile", username: session.userid});
-    // if (!req.isAuthenticated()){
-    //     res.redirect('/');
-    // }
+//this user profile
+app.get('/profile', (req, res) => {
+    if (!req.isAuthenticated()){
+        res.redirect('/');
+    }
+    else{
+        User.findById(req.user._id, (err, user) => {
+            if(err){
+                console.log(err);
+                return res.redirect('/');
+            }
+            else{
+                res.redirect('/profile/' + user.username);
+            }
+        });
+    }
+});
 
+//specific profile
+app.get('/profile/:username', (req,res) => {
     var username = req.params.username;
+    console.log(username);
 
     User.findOne({username: username}, (err, user) => {
         if(err){
             console.log(err);
+            return res.redirect('/');
         }
         else{
+            //if user does not exist redirect to home
+            if(!user){
+                return res.redirect('/');
+            }
+
+            //disable caching
+            res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+            res.header('Expires', '-1');
+            res.header('Pragma', 'no-cache');
+
+            //update all of this user's posts
+            Post.find({user: user._id}, (err, posts) => {
+                if(err){
+                    console.log(err);
+                    return res.redirect('/');
+                }
+                else{
+                    //update the username of all of this user's posts
+                    for(var i = 0; i < posts.length; i++){
+                        Post.findOneAndUpdate({_id: posts[i]._id}, {username: user.username}, (err, post) => {
+                            if(err){
+                                console.log(err);
+                                return res.redirect('/');
+                            }
+                        });
+                    }
+                }
+            });
+
             res.render('profile.ejs', {currentUser : req.user, profileUser : user});
         }
     });
@@ -218,7 +277,6 @@ app.post('/dosignin', passport.authenticate('local', {
     successRedirect: '/profile',
     failureRedirect: '/'
     }), (req, res) => {
-        
 });
 
 //create new user
@@ -252,6 +310,10 @@ app.post('/dosignup',(req,res) => {
 
 //create post
 app.post('/newpost', (req, res) => {
+    if (!req.isAuthenticated() || req.user == null || req.user == undefined || req.user == ""){
+        res.redirect('/');
+    }
+
     var title = req.body.title;
     var content = req.body.content;
     var fishInfospecies = req.body.species;
@@ -261,7 +323,6 @@ app.post('/newpost', (req, res) => {
     var date = req.body.date;
     var username = req.user.username;
     var userOBjectId = req.user._id;
-
 
     var newFish = new Fish({
         species: fishInfospecies,

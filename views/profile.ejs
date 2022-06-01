@@ -8,7 +8,7 @@
     <h1>Welcome to <%= profileUser.username %>'s Profile!</h1>
     <!-- edit profile button if current user is profile user-->
     <% if (currentUser && currentUser.username === profileUser.username) { %>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editProfileModal" onclick="function reset(){document.getElementById('newUsername').value = document.getElementById('username').dataset.username;}reset();">
+    <button id="storedUsername" type="button" class="btn btn-primary" data-username="<%= profileUser.username %>" data-toggle="modal" data-target="#editProfileModal" onclick="function reset(){document.getElementById('newUsername').value = document.getElementById('storedUsername').dataset.username;}reset();">
       Edit Profile
     </button>
     <% } %>
@@ -32,7 +32,7 @@
                 </button>
               </div>
               <div class="modal-body">
-                <form action="/editprofile" method="post">
+                <form action="/editprofile?_method=PUT" method="post">
                   <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" class="form-control" id="newUsername" name="username" placeholder="New Username" value="<%= profileUser.username %>">
@@ -48,69 +48,29 @@
 
     <hr class="my-4">
 
-    <!-- 
-      //create fish info schema
-const fishInfoSchema = new mongoose.Schema({
-    species : String,
-    length : Number,
-    weight : Number
-});
-
-//create fishing post schema (title, description, fish info, image, date, username)
-const postSchema = new mongoose.Schema({
-    title: String,
-    content: String,
-    fishInfo: fishInfoSchema,
-
-    //user id
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-    }
-});
-    -->
-
-    <!-- use fish and post schema above to make card -->
+    <!-- post partial -->
     <div class="row">
       <div class="col-sm">
-        <h2>Posts</h2>
-        <!-- create post button if current user is profile user-->
-        <% if (currentUser && currentUser.username === profileUser.username) { %>
+          <h2>Posts</h2>
+          <!-- create post button if current user is profile user-->
+          <% if (currentUser && currentUser.username === profileUser.username) { %>
           <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newPostModal">
-            Create Post
+              Create Post
           </button>
-        <% } %>
-
-        <!-- newPost partial -->
-        <%- include ("partials/newPost.ejs", {user: profileUser}) %>
-
-        <!-- if no posts -->
-        <% if (profileUser.posts.length === 0) { %>
+          <% } %>
+  
+          <!-- newPost partial -->
+          <%- include ("partials/newPost.ejs", {user: profileUser}) %>
+  
+          <!-- if no posts -->
+          <% if (profileUser.posts.length === 0) { %>
           <p>No posts!</p>
-        <% } %>
-        <% for (let post of profileUser.posts) { %>
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title"><%= post.title %></h5>
-              <p class="card-text"><%= post.content %></p>
-              <p class="card-text"><%= post.fishInfo.species %></p>
-              <p class="card-text"><%= post.fishInfo.length %></p>
-              <p class="card-text"><%= post.fishInfo.weight %></p>
-              <p class="card-text"><%= post.createdAt %></p>
-              <p class="card-text"><%= post.user.username %></p>
-              <!-- if current user is profile user -->
-              <% if (currentUser && currentUser.username === profileUser.username) { %>
-                <!-- restful route for edit -->
-                <a href="/editpost/<%= post._id %>" class="btn btn-primary">Edit</a>
-                <!-- restful route for delete -->
-                <form action="/posts/<%= post._id %>?_method=DELETE" method="post">
-                  <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-              <% } %>
-            </div>
-          </div>
-        <% } %>
+          <% } %>
+          <% for (let post of profileUser.posts) { %>
+            <%- include ("partials/post.ejs", {post: post, currentUser: currentUser, profileUser: profileUser}) %>
+          <% } %>
       </div>
-    </div>
+  </div>
+    
   </div>
 </body>

@@ -1,0 +1,21 @@
+<!-- use fish and post schema above to make card -->
+<div class="card">
+    <div class="card-body">
+    <h5 class="card-title"><%= post.title %></h5>
+    <p class="card-text"><%= post.content %></p>
+    <p class="card-text"><%= post.fishInfo.species %></p>
+    <p class="card-text"><%= post.fishInfo.length %></p>
+    <p class="card-text"><%= post.fishInfo.weight %></p>
+    <p class="card-text"><%= post.createdAt %></p>
+    <p class="card-text">user: <%= post.user.username %></p>
+    <!-- if current user is profile user -->
+    <% if (currentUser && currentUser.username === profileUser.username) { %>
+        <!-- restful route for edit -->
+        <a href="/editpost/<%= post._id %>" class="btn btn-primary">Edit</a>
+        <!-- restful route for delete -->
+        <form action="/posts/<%= post._id %>?_method=DELETE" method="post">
+        <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    <% } %>
+    </div>
+</div>
