@@ -15,7 +15,7 @@ var ObjectId = require('mongodb').ObjectId;
 
 var datetime = new Date();
 
-mongoose.connect('mongodb://localhost/db_app', {
+mongoose.connect('mongodb+srv://Keane:19jvtD6NrsaSapFp@cluster0.wkiy3wk.mongodb.net/?retryWrites=true&w=majority', {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 });
