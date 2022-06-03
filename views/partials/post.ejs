@@ -2,28 +2,52 @@
 <div class="card">
     <div class="card-body">
     <h5 class="card-title"><%= post.title %></h5>
+    
+    <!-- if image, image -->
+    <% if (post.image) { %>
+        <hr>
+
+        <img src="<%= post.image %>" alt="<%= post.title %>" class="card-img-top mx-auto d-block" style="max-height: 30vh; object-fit: contain;">
+
+        <hr>
+    <% } %>
+
     <p class="card-text"><%= post.content %></p>
     <p class="card-text"><%= post.fishInfo.species %></p>
     <p class="card-text"><%= post.fishInfo.length %></p>
     <p class="card-text"><%= post.fishInfo.weight %></p>
     <p class="card-text">date: <%= post.date %></p>
-    <a class="nav-link" href="/profile/<%- post.username %>">
-        <%- post.username %>
-    </a>
+
     <!-- if current user is profile user -->
     <% if (currentUser && currentUser.username === post.username) { %>
-        <!-- edit post modal -->
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal">
-            Edit Post
-        </button>
+        <div class="row">
+            <!-- edit post modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal">
+                Edit Post
+            </button>
 
-        <!-- editPost partial -->
-        <%- include ("editPost.ejs", {post: post, currentUser: currentUser, profileUser: profileUser}) %>
+            <!-- editPost partial -->
+            <%- include ("editPost.ejs", {post: post, currentUser: currentUser}) %>
 
-        <!-- restful route for delete -->
-        <form action="/profile/<%= post.username %>/<%= post._id %>?_method=DELETE" method="post">
-        <button type="submit" class="btn btn-danger">Delete</button>
-        </form>
+            <!-- restful route for delete -->
+            <form action="/profile/<%= post.username %>/<%= post._id %>?_method=DELETE" method="post">
+            <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
     <% } %>
+    
+    <!-- row with link to user profile (left), and post link (right) -->
+    <div class="row">
+        <div class="col">
+            <a href="/profile/<%= post.username %>">
+                Author: <%= post.username %>
+            </a>
+        </div>
+        <div class="col">
+            <a class="float-right" href="/profile/<%= post.username %>/<%= post._id %>">
+                Post ID: <%= post._id %>
+            </a>
+        </div>
+    </div>
     </div>
 </div>

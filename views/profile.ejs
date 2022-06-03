@@ -67,7 +67,7 @@
           <p>No posts!</p>
           <% } %>
           <% for (let post of profileUser.posts) { %>
-            <%- include ("partials/post.ejs", {post: post, currentUser: currentUser, profileUser: profileUser}) %>
+            <%- include ("partials/post.ejs", {post: post, currentUser: currentUser}) %>
           <% } %>
       </div>
   </div>

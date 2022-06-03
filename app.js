@@ -241,6 +241,208 @@ app.get('/profile/:username', (req,res) => {
     });
 });
 
+//edit profile (only username)
+app.put('/editprofile', (req,res) => {
+    var username = req.user.username;
+    var newUsername = req.body.username;
+
+    if (ValidateUsername(newUsername) == false){
+        console.log("Invalid username");
+        res.redirect('/profile');
+        return;
+    }
+
+    console.log("username: " + username + " newUsername: " + newUsername);
+
+    User.findOneAndUpdate({username: username}, {username: newUsername}, (err, user) => {
+        if(err){
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            res.redirect('/profile');
+        }
+    });
+});
+
+//create post
+app.post('/newpost', (req, res) => {
+    if (!req.isAuthenticated() || req.user == null || req.user == undefined || req.user == ""){
+        res.redirect('/');
+    }
+
+    var title = req.body.title;
+    var content = req.body.content;
+    var fishInfospecies = req.body.species;
+    var fishInfolength = req.body.length;
+    var fishInfoweight = req.body.weight;
+    var image = req.body.image;
+    if (isValidURL(image) == false){
+        image = "";
+    };
+    var date = datetime.toISOString().slice(0,10);
+    var username = req.user.username;
+    var userOBjectId = req.user._id;
+
+    var newFish = new Fish({
+        species: fishInfospecies,
+        length: fishInfolength,
+        weight: fishInfoweight
+    });
+
+    var newPost = new Post({
+        title: title,
+        content: content,
+        fishInfo: newFish,
+        image: image,
+        date: date,
+        user: userOBjectId,
+        username: username
+    });
+
+    User.findOne({username: username}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            user.posts.push(newPost);
+            user.save((err, user) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    res.redirect('back');
+                }
+            });
+        }
+    });
+});
+
+//edit post
+app.put('/profile/:username/:id', (req,res) => {
+    if (!req.isAuthenticated()){
+        res.redirect('/');
+        return;
+    }
+
+    var username = req.params.username;
+    var postid = req.params.id;
+    var title = req.body.title;
+    var content = req.body.content;
+    var fishInfospecies = req.body.species;
+    var fishInfolength = req.body.length;
+    var fishInfoweight = req.body.weight;
+    var image = req.body.image;
+    if (isValidURL(image) == false){
+        image = "";
+    };
+
+    console.log("username: " + username + " postid: " + postid + " title: " + title + " content: " + content + " fishInfospecies: " + fishInfospecies + " fishInfolength: " + fishInfolength + " fishInfoweight: " + fishInfoweight + " image: " + image);
+
+    User.findOne({username: username}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            //check if current user is the owner of the post
+            if (user.username != req.user.username){
+                return res.send("Error: You are not the owner of this post");
+            }
+
+            console.log("user: " + user);
+            console.log("user.posts: " + user.posts);
+            console.log("user.posts[0].id: " + user.posts[0]._id);
+
+            //find post with postid in array
+            var post = user.posts.find(post => post._id == postid);
+            
+            post.title = title;
+            post.content = content;
+            post.fishInfo.species = fishInfospecies;
+            post.fishInfo.length = fishInfolength;
+            post.fishInfo.weight = fishInfoweight;
+            post.image = image;
+            post.username = username;
+
+            user.save((err, user) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    res.redirect('back');
+                }
+            });
+        }
+    });
+});
+
+//delete post
+app.delete('/profile/:username/:id', (req, res) => {
+    if (!req.isAuthenticated()){
+        res.redirect('/');
+        return;
+    }
+
+    var username = req.params.username;
+    var postid = req.params.id;
+    console.log("Want to delete post " + postid);
+    
+    
+    User.findOne({username: username}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            console.log(user);
+            //check if current user is the owner of the post
+            if (user.username != req.user.username){
+                return res.send("Error: You are not the owner of this post");
+            }
+
+            user.posts.pull(postid);
+            user.save((err, user) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    res.redirect('back');
+                }
+            });
+        }
+    });
+});
+
+//view post
+app.get('/profile/:username/:id', (req, res) => {
+    // if (!req.isAuthenticated()){
+    //     res.redirect('/');
+    //     return;
+    // }
+
+    var username = req.params.username;
+    var postid = req.params.id;
+
+    User.findOne({username: username}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            var post = user.posts.find(post => post._id == postid);
+            console.log("post: " + post);
+            res.render('post.ejs', {post: post, currentUser: req.user});
+        }
+    });
+});
+
+
+
 function isloggedin(req,res,next){
     if (req.isAuthenticated()){
         return next();
@@ -312,179 +514,6 @@ app.post('/dosignup',(req,res) => {
     });
 });
 
-//create post
-app.post('/newpost', (req, res) => {
-    if (!req.isAuthenticated() || req.user == null || req.user == undefined || req.user == ""){
-        res.redirect('/');
-    }
-
-    var title = req.body.title;
-    var content = req.body.content;
-    var fishInfospecies = req.body.species;
-    var fishInfolength = req.body.length;
-    var fishInfoweight = req.body.weight;
-    var image = req.body.image;
-    var date = datetime.toISOString().slice(0,10);
-    var username = req.user.username;
-    var userOBjectId = req.user._id;
-
-    var newFish = new Fish({
-        species: fishInfospecies,
-        length: fishInfolength,
-        weight: fishInfoweight
-    });
-
-    var newPost = new Post({
-        title: title,
-        content: content,
-        fishInfo: newFish,
-        image: image,
-        date: date,
-        user: userOBjectId,
-        username: username
-    });
-
-    User.findOne({username: username}, (err, user) => {
-        if (err) {
-            console.log(err);
-            return res.send("Error: " + err);
-        }
-        else{
-            user.posts.push(newPost);
-            user.save((err, user) => {
-                if (err) {
-                    console.log(err);
-                    return res.send("Error: " + err);
-                }
-                else{
-                    res.redirect('back');
-                }
-            });
-        }
-    });
-});
-
-//delete post
-app.delete('/profile/:username/:id', (req, res) => {
-    if (!req.isAuthenticated()){
-        res.redirect('/');
-        return;
-    }
-
-    var username = req.params.username;
-    var postid = req.params.id;
-    console.log("Want to delete post " + postid);
-    
-    
-    User.findOne({username: username}, (err, user) => {
-        if (err) {
-            console.log(err);
-            return res.send("Error: " + err);
-        }
-        else{
-            console.log(user);
-            //check if current user is the owner of the post
-            if (user.username != req.user.username){
-                return res.send("Error: You are not the owner of this post");
-            }
-
-            user.posts.pull(postid);
-            user.save((err, user) => {
-                if (err) {
-                    console.log(err);
-                    return res.send("Error: " + err);
-                }
-                else{
-                    res.redirect('/profile');
-                }
-            });
-        }
-    });
-});
-
-//edit profile (only username)
-app.put('/editprofile', (req,res) => {
-    var username = req.user.username;
-    var newUsername = req.body.username;
-
-    if (ValidateUsername(newUsername) == false){
-        console.log("Invalid username");
-        res.redirect('/profile');
-        return;
-    }
-
-    console.log("username: " + username + " newUsername: " + newUsername);
-
-    User.findOneAndUpdate({username: username}, {username: newUsername}, (err, user) => {
-        if(err){
-            console.log(err);
-            return res.send("Error: " + err);
-        }
-        else{
-            res.redirect('/profile');
-        }
-    });
-});
-
-//edit post
-app.put('/profile/:username/:id', (req,res) => {
-    if (!req.isAuthenticated()){
-        res.redirect('/');
-        return;
-    }
-
-    var username = req.params.username;
-    var postid = req.params.id;
-    var title = req.body.title;
-    var content = req.body.content;
-    var fishInfospecies = req.body.species;
-    var fishInfolength = req.body.length;
-    var fishInfoweight = req.body.weight;
-    var image = req.body.image;
-
-    console.log("username: " + username + " postid: " + postid + " title: " + title + " content: " + content + " fishInfospecies: " + fishInfospecies + " fishInfolength: " + fishInfolength + " fishInfoweight: " + fishInfoweight + " image: " + image);
-
-    User.findOne({username: username}, (err, user) => {
-        if (err) {
-            console.log(err);
-            return res.send("Error: " + err);
-        }
-        else{
-            //check if current user is the owner of the post
-            if (user.username != req.user.username){
-                return res.send("Error: You are not the owner of this post");
-            }
-
-            console.log("user: " + user);
-            console.log("user.posts: " + user.posts);
-            console.log("user.posts[0].id: " + user.posts[0]._id);
-
-            //find post with postid in array
-            var post = user.posts.find(post => post._id == postid);
-            
-            post.title = title;
-            post.content = content;
-            post.fishInfo.species = fishInfospecies;
-            post.fishInfo.length = fishInfolength;
-            post.fishInfo.weight = fishInfoweight;
-            post.image = image;
-            post.username = username;
-
-            user.save((err, user) => {
-                if (err) {
-                    console.log(err);
-                    return res.send("Error: " + err);
-                }
-                else{
-                    res.redirect('/profile');
-                }
-            });
-        }
-    });
-});
-
-
-
 //logut
 app.get('/logout',(req,res) => {
     req.logout(function(err){
@@ -495,5 +524,10 @@ app.get('/logout',(req,res) => {
         res.redirect('/');
     });
 });
+
+function isValidURL(string) {
+    var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+    return (res !== null)
+  };
 
 app.listen(PORT, () => console.log(`Server Running at port ${PORT}`));
