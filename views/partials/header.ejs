@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="min-height: 100vh;">
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -18,10 +18,11 @@
     <script src="https://kit.fontawesome.com/673792e0ab.js" crossorigin="anonymous"></script>
 
     <!-- custom css -->
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="flex">
+<body style="min-height: 100vh;">
+    <div style="min-height: 100vh;">
     <!-- header navbar for all pages -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
         <a class="navbar-brand" href="/feed"><i class="fa-solid fa-fish"></i>FishBook</a> 
@@ -31,7 +32,11 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
+                <!-- feed -->
+                <li class="nav-item">
+                    <a class="nav-link" href="/feed">Feed</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/landing">About</a>
                 </li>
             </ul>
@@ -39,21 +44,31 @@
             <% if (currentUser) { %>
                 <!-- profile -->
                 <a class="nav-link" href="/profile">
-                    <%- currentUser.username %>
+                    <%- currentUser.username %> <i class="fa-solid fa-user"></i>
                 </a>
                 <!-- log out -->
                 <a class="nav-link" href="/logout">
-                    Log out
+                    Log out <i class="fa-solid fa-right-from-bracket"></i>
                 </a>
             <% } else { %>
                 <!-- login -->
                 <a class="nav-link" href="/login">
-                    Login
+                    Login <i class="fa-solid fa-right-to-bracket"></i>
                 </a>
                 <!-- sign up -->
                 <a class="nav-link" href="/newuser">
-                    Sign Up
+                    Sign Up <i class="fa-solid fa-user-plus"></i>
                 </a>
             <% } %>
         </div>
     </nav>
+
+    <script>
+        // navbar active state
+        $(document).ready(function() {
+            var url = window.location.href;
+            var activePage = url.substr(url.lastIndexOf('/') + 1);
+            if (activePage == "") activePage = "feed";
+            $('a[href="/' + activePage + '"]').addClass('active');
+        });
+    </script>

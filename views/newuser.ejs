@@ -10,6 +10,12 @@
                 <div class="card card-signin my-5">
                     <div class="card-body">
                         <h5 class="card-title text-center">Sign Up</h5>
+
+                        <!-- hiding error message -->
+                        <div class="alert alert-danger" id="error-message" style="display:none;">
+                            <strong>Error!</strong> <p id="failMessage">Fail Message.</p>
+                        </div>
+
                         <form class="form-signin" action="/dosignup" method="post">
                             <div class="form-label-group">
                                 <input type="text" id="inputUsername" name="username" class="form-control" placeholder="Username" required autofocus>
@@ -37,3 +43,66 @@
         </div>
     </div>
 </html>
+
+<script>
+    // check for fragment in url
+    var url = window.location.href;
+    var fragment = url.split('#')[1];
+
+    //fail conditions {failMatch, failLength, failCharacter, failExists, fail}
+    if (fragment == "failMatch") {
+        document.getElementById('failMessage').innerHTML = "Passwords do not match.";
+
+        // if fragment exists, set username and password to red
+        document.getElementById('inputPassword').style.borderColor = 'red';
+        document.getElementById('inputConfirmPassword').style.borderColor = 'red';
+        // set focus to username
+        document.getElementById('inputUsername').focus();
+        // show error message
+        document.getElementById('error-message').style.display = 'block';
+    }
+    else if (fragment == "failLength"){
+        document.getElementById('failMessage').innerHTML = "Username must be between 3 and 20 characters";
+
+        // if fragment exists, set username and password to red
+        document.getElementById('inputPassword').style.borderColor = 'red';
+        document.getElementById('inputConfirmPassword').style.borderColor = 'red';
+        // set focus to username
+        document.getElementById('inputUsername').focus();
+        // show error message
+        document.getElementById('error-message').style.display = 'block';
+    }
+    else if (fragment == "failCharacter"){
+        document.getElementById('failMessage').innerHTML = "Username cannot contain special characters (letters, numbers, and '_' only.)";
+
+        // if fragment exists, set username and password to red
+        document.getElementById('inputPassword').style.borderColor = 'red';
+        document.getElementById('inputConfirmPassword').style.borderColor = 'red';
+        // set focus to username
+        document.getElementById('inputUsername').focus();
+        // show error message
+        document.getElementById('error-message').style.display = 'block';
+    }
+    else if (fragment == "failExists"){
+        document.getElementById('failMessage').innerHTML = "Username already exists.";
+
+        // if fragment exists, set username and password to red
+        document.getElementById('inputUsername').style.borderColor = 'red';
+        // set focus to username
+        document.getElementById('inputUsername').focus();
+        // show error message
+        document.getElementById('error-message').style.display = 'block';
+    }
+    else if (fragment == "fail"){
+        document.getElementById('failMessage').innerHTML = "Something went wrong.";
+
+        // if fragment exists, set username and password to red
+        document.getElementById('inputPassword').style.borderColor = 'red';
+        document.getElementById('inputConfirmPassword').style.borderColor = 'red';
+        // set focus to username
+        document.getElementById('inputUsername').focus();
+        // show error message
+        document.getElementById('error-message').style.display = 'block';
+    }
+    
+</script>

@@ -51,7 +51,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //serving public file
-app.use(express.static(__dirname));
+app.use(express.static(__dirname + '/public'));
 
 //body parser
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -281,6 +281,53 @@ app.put('/editprofile', (req,res) => {
     });
 });
 
+// delete profile
+app.delete('/profile/:username', (req,res) => {
+    var username = req.params.username;
+
+    // check if user is logged in and if they are the same user
+    if(!req.isAuthenticated() || req.user.username != username){
+        res.redirect('/');
+        return;
+    }
+
+    User.findOneAndRemove({username: username}, (err, user) => {
+        if(err){
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            // find all users, update all posts's comments to have the current user's username
+            User.find({}, (err, users) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    for (var i = 0; i < users.length; i++){
+                        console.log("updating comments for " + users[i].username);
+                        for (var j = 0; j < users[i].posts.length; j++){
+                            console.log("- post " + j);
+                            //update username
+                            users[i].posts[j].comments.forEach(comment => {
+                                if (comment.username == username){
+                                    console.log("---- updating comment username");
+                                    comment.username = "test";
+                                }
+                            });
+                        }
+                        //save user
+                        users[i].save();
+                    }
+                }
+            });
+
+            res.redirect('/');
+        }
+    });
+});
+    
+
 //create post
 app.post('/newpost', (req, res) => {
     if (!req.isAuthenticated() || req.user == null || req.user == undefined || req.user == ""){
@@ -396,97 +443,6 @@ app.put('/profile/:username/:id', (req,res) => {
     });
 });
 
-// add comment
-app.post('/profile/:username/:id/addComment', (req,res) => {
-    if (!req.isAuthenticated()){
-        res.redirect('back');
-        return;
-    }
-
-    var postUsername = req.params.username;
-    var postid = req.params.id;
-    
-    var text = req.body.text;
-    var date = datetime.toISOString().slice(0,10);
-    var username = req.user.username;
-    var userId = req.user._id;
-
-    // new comment
-    var newComment = new Comment({
-        text: text,
-        date: date,
-        user: userId,
-        username: username
-    });
-
-    User.findOne({username: postUsername}, (err, user) => {
-        if (err) {
-            console.log(err);
-            return res.send("Error: " + err);
-        }
-        else{
-            // add comment to post
-            var post = user.posts.find(post => post._id == postid);
-            post.comments.push(newComment);
-
-            user.save((err, user) => {
-                if (err) {
-                    console.log(err);
-                    return res.send("Error: " + err);
-                }
-                else{
-                    res.redirect('back');
-                }
-            });
-        }
-    });
-});
-
-// delete comment
-app.delete('/profile/:username/:id/:commentid', (req,res) => {
-    if (!req.isAuthenticated()){
-        res.redirect('back');
-        return;
-    }
-
-    var postUsername = req.params.username;
-    var postid = req.params.id;
-    var commentid = req.params.commentid;
-
-    User.findOne({username: postUsername}, (err, user) => {
-        if (err) {
-            console.log(err);
-            return res.send("Error: " + err);
-        }
-        else{
-            // find post
-            var post = user.posts.find(post => post._id == postid);
-            // find comment
-            var comment = post.comments.find(comment => comment._id == commentid);
-
-            // check if current user is the owner of the comment or owner of the post
-            if (comment.username != req.user.username || post.username != req.user.username){
-                return res.send("Error: You are not the owner of this comment");
-            }
-
-            // remove comment from post
-            post.comments.remove(comment);
-
-            user.save((err, user) => {
-                if (err) {
-                    console.log(err);
-                    return res.send("Error: " + err);
-                }
-                else{
-                    res.redirect('back');
-                }
-            });
-        }
-    });
-});
-            
-
-
 
 //delete post
 app.delete('/profile/:username/:id', (req, res) => {
@@ -557,6 +513,95 @@ app.get('/profile/:username/:id', (req, res) => {
     });
 });
 
+// add comment
+app.post('/profile/:username/:id/addComment', (req,res) => {
+    if (!req.isAuthenticated()){
+        res.redirect('back');
+        return;
+    }
+
+    var postUsername = req.params.username;
+    var postid = req.params.id;
+    
+    var text = req.body.text;
+    var date = datetime.toISOString().slice(0,10);
+    var username = req.user.username;
+    var userId = req.user._id;
+
+    // new comment
+    var newComment = new Comment({
+        text: text,
+        date: date,
+        user: userId,
+        username: username
+    });
+
+    User.findOne({username: postUsername}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            // add comment to post
+            var post = user.posts.find(post => post._id == postid);
+            post.comments.push(newComment);
+
+            user.save((err, user) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    res.redirect('back');
+                }
+            });
+        }
+    });
+});
+
+// delete comment
+app.delete('/profile/:username/:id/:commentid', (req,res) => {
+    if (!req.isAuthenticated()){
+        res.redirect('back');
+        return;
+    }
+
+    var postUsername = req.params.username;
+    var postid = req.params.id;
+    var commentid = req.params.commentid;
+
+    User.findOne({username: postUsername}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            // find post
+            var post = user.posts.find(post => post._id == postid);
+            // find comment
+            var comment = post.comments.find(comment => comment._id == commentid);
+
+            // check if current user is the owner of the comment or owner of the post
+            if (comment.username != req.user.username && post.username != req.user.username){
+                return res.send("Error: You are not the owner of this comment");
+            }
+
+            // remove comment from post
+            post.comments.remove(comment);
+
+            user.save((err, user) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    res.redirect('back');
+                }
+            });
+        }
+    });
+});
+
 
 
 function isloggedin(req,res,next){
@@ -571,27 +616,16 @@ function ValidateUsername(username){
 
     //check length
     if(username.length < 3 || username.length > 20){
-        return false;
+        return "failLength";
     }
 
     //check no special characters
-    var regex = /^[a-zA-Z0-9]+$/;
+    var regex = /^[a-zA-Z0-9_]+$/;
     if(!regex.test(username)){
-        return false;
+        return "failCharacter";
     }
 
-    //check if username is taken
-    User.findOne({username: username}, (err, user) => {
-        if (err) {
-            console.log(err);
-            return false;
-        }
-        if (user) {
-            return false;
-        }
-    });
-
-    return true;
+    return "success";
 }
 
 // login
@@ -650,11 +684,17 @@ app.post('/dosignin', passport.authenticate('local', {
 app.post('/dosignup',(req,res) => {
     var username = req.body.username;
     var password = req.body.password;
+    var confrimpassword = req.body.confirmpassword;
 
-    if (ValidateUsername(username) == false){
-        res.redirect('/newuser');
-        return;
+    if (password != confrimpassword){
+        return res.redirect('/newuser#failMatch');
     }
+
+    var ValidateUsernameResult = ValidateUsername(username);
+    if (ValidateUsernameResult != "success"){
+        return res.redirect('/newuser#' + ValidateUsernameResult);
+    }
+
     console.log("Creating new user " + username);
 
     var newUser = new User({
@@ -665,7 +705,7 @@ app.post('/dosignup',(req,res) => {
     User.register(newUser, password, (err, user) => {
         if(err){
             console.log(err);
-            return res.send("Error: " + err);
+            return res.redirect("/newuser#failExists");
         }
         else{
             passport.authenticate('local')(req, res, () => {

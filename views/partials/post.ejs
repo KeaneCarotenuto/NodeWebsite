@@ -29,6 +29,12 @@
                 <img src="<%= post.image %>" alt="<%= post.title %>" class="card-img-top mx-auto d-block" style="max-height: 30vh; object-fit: contain;">
 
                 <hr>
+            <% } else { %>
+                <hr>
+
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/1024px-No_image_available.svg.png" alt="<%= post.title %>" class="card-img-top mx-auto d-block" style="max-height: 30vh; object-fit: contain;">
+
+                <hr>
             <% } %>
 
             <!-- Info card -->
