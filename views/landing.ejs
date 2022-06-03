@@ -1,0 +1,31 @@
+<!-- header partial -->
+<%- include ("partials/header.ejs", {currentUser : currentUser}) %>
+<!-- Use bootstrap grid system to create a responsive page! -->
+
+<!-- This is the about page for FishBook -->
+
+<!-- Jumbo -->
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <h1 class="display-4"><i class="fa-solid fa-fish"></i>FishBook</h1>
+        <p class="lead">A social media site for sharing fish.</p>
+    </div>
+</div>
+
+<!-- Founding information -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm">
+            <h2>About</h2>
+            <p>FishBook is a social media site for sharing fish. It was created by a group of students at the University
+                of Washington. We hope you enjoy using it!</p>
+        </div>
+        <div class="col-sm">
+            <h2>Contact</h2>
+            <p>If you have any questions, comments, or concerns, please contact us at <a href="mailto:KeaneCarotenuto@gmail.com">KeaneCarotenuto@gmail.com</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Footer partial -->
+<%- include ("partials/footer.ejs") %>

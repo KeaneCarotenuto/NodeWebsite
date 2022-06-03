@@ -104,11 +104,13 @@
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </form>
+                <% } else { %>
+                    <p>Please log in to comment</p>
                 <% } %>
 
                 <hr>
 
-                <% if (post.comments) { %>
+                <% if (post.comments && post.comments.length > 0) { %>
                     <% for (var i = 0; i < post.comments.length; i++) { %>
                         <div class="card">
                             <div class="card-body">
@@ -139,6 +141,8 @@
                             </div>
                         </div>
                     <% } %>
+                <% } else { %>
+                    <p>No comments yet!</p>
                 <% } %>
             </div>
         </div>

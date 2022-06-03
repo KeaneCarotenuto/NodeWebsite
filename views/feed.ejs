@@ -6,7 +6,7 @@
 <div class="container">
     <div class="row">
         <div class="col-sm">
-            <h2>Posts</h2>
+            <h2>All Posts</h2>
             <% if (currentUser) { %>
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newPostModal">
                     Create New Post
@@ -23,3 +23,6 @@
         </div>
     </div>
 </div>
+
+<!-- Footer partial -->
+<%- include ("partials/footer.ejs") %>

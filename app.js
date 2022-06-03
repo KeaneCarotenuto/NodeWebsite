@@ -143,8 +143,14 @@ passport.deserializeUser(User.deserializeUser());
 // a variable to save a session
 var session;
 
+// default route
 app.get("/", (req, res) => {
-    res.redirect('/feed');
+    res.redirect('/landing');
+});
+
+// landing page
+app.get("/landing", (req, res) => {
+    res.render("landing.ejs", {currentUser: req.user});
 });
 
 //login
