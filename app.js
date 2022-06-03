@@ -731,4 +731,4 @@ function isValidURL(string) {
     return (res !== null)
   };
 
-app.listen(PORT, () => console.log(`Server Running at port ${PORT}`));
+app.listen(process.env.PORT || PORT, process.env.IP, () => console.log(`Server Running at port ${PORT}`));
