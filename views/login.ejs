@@ -10,6 +10,11 @@
                 <div class="card card-signin my-5">
                     <div class="card-body">
                         <h5 class="card-title text-center">Sign In</h5>
+                        <!-- hiding error message -->
+                        <div class="alert alert-danger" id="error-message" style="display:none;">
+                            <strong>Error!</strong> Invalid username or password.
+                        </div>
+                        
                         <form class="form-signin" action="/dosignin" method="post">
                             <div class="form-label-group">
                                 <label for="inputUsername">Username</label>
@@ -33,5 +38,22 @@
                 </div>
             </div>
         </div>
+    </div>
 </body>
-</html>
+
+<script>
+    // check for fragment in url
+    var url = window.location.href;
+    var fragment = url.split('#')[1];
+    if (fragment == "fail") {
+        // if fragment exists, set username and password to red
+        document.getElementById('inputUsername').style.borderColor = 'red';
+        document.getElementById('inputPassword').style.borderColor = 'red';
+
+        // set focus to username
+        document.getElementById('inputUsername').focus();
+
+        // show error message
+        document.getElementById('error-message').style.display = 'block';
+    }
+</script>

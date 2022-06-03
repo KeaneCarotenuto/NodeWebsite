@@ -5,12 +5,15 @@
 <body>
   <!-- cenetered welcome jumbo with username-->
   <div class="jumbotron text-center">
-    <h1>Welcome to <%= profileUser.username %>'s Profile!</h1>
+    
     <!-- edit profile button if current user is profile user-->
     <% if (currentUser && currentUser.username === profileUser.username) { %>
+    <h1>Welcome <%= profileUser.username %></h1>
     <button id="storedUsername" type="button" class="btn btn-primary" data-username="<%= profileUser.username %>" data-toggle="modal" data-target="#editProfileModal" onclick="function reset(){document.getElementById('newUsername').value = document.getElementById('storedUsername').dataset.username;}reset();">
-      Edit Profile
+      Edit Username
     </button>
+    <% } else { %>
+      <h1>Welcome to <%= profileUser.username %>'s Profile!</h1>
     <% } %>
   </div>
 
@@ -67,6 +70,7 @@
           <p>No posts!</p>
           <% } %>
           <% for (let post of profileUser.posts) { %>
+            <hr>
             <%- include ("partials/post.ejs", {post: post, currentUser: currentUser}) %>
           <% } %>
       </div>

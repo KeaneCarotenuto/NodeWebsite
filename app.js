@@ -71,6 +71,18 @@ const fishInfoSchema = new mongoose.Schema({
     weight : Number
 });
 
+// comment structure
+const commentSchema = new mongoose.Schema({
+    text : String,
+    //user id
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
+    username: String,
+    date : String
+});
+
 //create fishing post schema (title, description, fish info, image, date, username)
 const postSchema = new mongoose.Schema({
     title: String,
@@ -78,6 +90,9 @@ const postSchema = new mongoose.Schema({
     fishInfo: fishInfoSchema,
     image: String,
     date: String,
+
+    // comment
+    comments: [commentSchema],
 
     //user id
     user: {
@@ -106,13 +121,16 @@ const UserSchema = new mongoose.Schema({
 UserSchema.plugin(passportLocalMongoose);
 
 //create models
-//fish
+// fish
 const Fish = mongoose.model("Fish", fishInfoSchema);
 
-//post
+// comment
+const Comment = mongoose.model("Comment", commentSchema);
+
+// post
 const Post = mongoose.model("Post", postSchema);
 
-//user
+// user
 const User = mongoose.model('User', UserSchema);
 
 
@@ -227,14 +245,6 @@ app.get('/profile/:username', (req,res) => {
             res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
             res.header('Expires', '-1');
             res.header('Pragma', 'no-cache');
-
-            //update all of this user's posts
-            for (var i = 0; i < user.posts.length; i++){
-                //update username
-                user.posts[i].username = user.username;
-            }
-            //save user
-            user.save();
 
             res.render('profile.ejs', {currentUser : req.user, profileUser : user});
         }
@@ -380,6 +390,98 @@ app.put('/profile/:username/:id', (req,res) => {
     });
 });
 
+// add comment
+app.post('/profile/:username/:id/addComment', (req,res) => {
+    if (!req.isAuthenticated()){
+        res.redirect('back');
+        return;
+    }
+
+    var postUsername = req.params.username;
+    var postid = req.params.id;
+    
+    var text = req.body.text;
+    var date = datetime.toISOString().slice(0,10);
+    var username = req.user.username;
+    var userId = req.user._id;
+
+    // new comment
+    var newComment = new Comment({
+        text: text,
+        date: date,
+        user: userId,
+        username: username
+    });
+
+    User.findOne({username: postUsername}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            // add comment to post
+            var post = user.posts.find(post => post._id == postid);
+            post.comments.push(newComment);
+
+            user.save((err, user) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    res.redirect('back');
+                }
+            });
+        }
+    });
+});
+
+// delete comment
+app.delete('/profile/:username/:id/:commentid', (req,res) => {
+    if (!req.isAuthenticated()){
+        res.redirect('back');
+        return;
+    }
+
+    var postUsername = req.params.username;
+    var postid = req.params.id;
+    var commentid = req.params.commentid;
+
+    User.findOne({username: postUsername}, (err, user) => {
+        if (err) {
+            console.log(err);
+            return res.send("Error: " + err);
+        }
+        else{
+            // find post
+            var post = user.posts.find(post => post._id == postid);
+            // find comment
+            var comment = post.comments.find(comment => comment._id == commentid);
+
+            // check if current user is the owner of the comment or owner of the post
+            if (comment.username != req.user.username || post.username != req.user.username){
+                return res.send("Error: You are not the owner of this comment");
+            }
+
+            // remove comment from post
+            post.comments.remove(comment);
+
+            user.save((err, user) => {
+                if (err) {
+                    console.log(err);
+                    return res.send("Error: " + err);
+                }
+                else{
+                    res.redirect('back');
+                }
+            });
+        }
+    });
+});
+            
+
+
+
 //delete post
 app.delete('/profile/:username/:id', (req, res) => {
     if (!req.isAuthenticated()){
@@ -420,6 +522,8 @@ app.delete('/profile/:username/:id', (req, res) => {
 
 //view post
 app.get('/profile/:username/:id', (req, res) => {
+    console.log("view post");
+
     // if (!req.isAuthenticated()){
     //     res.redirect('/');
     //     return;
@@ -428,12 +532,18 @@ app.get('/profile/:username/:id', (req, res) => {
     var username = req.params.username;
     var postid = req.params.id;
 
+    console.log("username: " + username + " postid: " + postid);
+
     User.findOne({username: username}, (err, user) => {
         if (err) {
             console.log(err);
             return res.send("Error: " + err);
         }
         else{
+            if (!user){
+                return res.send("Error: User not found");
+            }
+
             var post = user.posts.find(post => post._id == postid);
             console.log("post: " + post);
             res.render('post.ejs', {post: post, currentUser: req.user});
@@ -480,9 +590,54 @@ function ValidateUsername(username){
 
 // login
 app.post('/dosignin', passport.authenticate('local', {
-    successRedirect: '/profile',
-    failureRedirect: '/'
+    failureRedirect: '/login#fail',
     }), (req, res) => {
+        console.log(req.user.username + " Logged in");
+
+        // update all posts to have the current user's username
+        User.findOne({username: req.user.username}, (err, user) => {
+            if (err) {
+                console.log(err);
+                return res.send("Error: " + err);
+            }
+            else{
+                //update all of this user's posts
+                for (var i = 0; i < user.posts.length; i++){
+                    //update username
+                    user.posts[i].username = user.username;
+                }
+                //save user
+                user.save();
+            }
+        });
+
+        // find all users, update all posts's comments to have the current user's username
+        User.find({}, (err, users) => {
+            if (err) {
+                console.log(err);
+                return res.send("Error: " + err);
+            }
+            else{
+                for (var i = 0; i < users.length; i++){
+                    console.log("updating comments for " + users[i].username);
+                    for (var j = 0; j < users[i].posts.length; j++){
+                        console.log("- post " + j);
+                        //update username
+                        users[i].posts[j].comments.forEach(comment => {
+                            console.log("-- comment " + comment.user + " to " + req.user._id);
+                            if (comment.user.toString() == req.user._id.toString()){
+                                console.log("---- updating comment username");
+                                comment.username = req.user.username;
+                            }
+                        });
+                    }
+                    //save user
+                    users[i].save();
+                }
+            }
+        });
+
+        res.redirect('/profile');
 });
 
 //create new user

@@ -1,53 +1,146 @@
 <!-- use fish and post schema above to make card -->
-<div class="card">
-    <div class="card-body">
-    <h5 class="card-title"><%= post.title %></h5>
-    
-    <!-- if image, image -->
-    <% if (post.image) { %>
-        <hr>
+<!-- row, post card on left, scrollable comments section on right -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <!-- row with title and date -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <h2 class="card-title">
+                            <a href="/profile/<%= post.username %>/<%= post._id %>">
+                                <%- post.title %>
+                            </a>
+                        </h4>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="card-text">
+                            <small class="text-muted float-right">
+                                <%= post.date %>
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            
+            <!-- if image, image -->
+            <% if (post.image) { %>
+                <hr>
 
-        <img src="<%= post.image %>" alt="<%= post.title %>" class="card-img-top mx-auto d-block" style="max-height: 30vh; object-fit: contain;">
+                <img src="<%= post.image %>" alt="<%= post.title %>" class="card-img-top mx-auto d-block" style="max-height: 30vh; object-fit: contain;">
 
-        <hr>
-    <% } %>
+                <hr>
+            <% } %>
 
-    <p class="card-text"><%= post.content %></p>
-    <p class="card-text"><%= post.fishInfo.species %></p>
-    <p class="card-text"><%= post.fishInfo.length %></p>
-    <p class="card-text"><%= post.fishInfo.weight %></p>
-    <p class="card-text">date: <%= post.date %></p>
+            <!-- Info card -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Fish Info</h5>
+                    <!-- row -->
+                    <div class="row">
+                        <!-- col -->
+                        <div class="col-sm">
+                            <h5>Species</h5>
+                            <p class="card-text"><%= post.fishInfo.species %></p>
+                        </div>
+                        <div class="col-sm">
+                            <h5>Length</h5>
+                            <p class="card-text"><%= post.fishInfo.length %> cm</p>
+                        </div>
+                        <!-- col -->
+                        <div class="col-sm">
+                            <h5>Weight</h5>
+                            <p class="card-text"><%= post.fishInfo.weight %> kg</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- if current user is profile user -->
-    <% if (currentUser && currentUser.username === post.username) { %>
-        <div class="row">
-            <!-- edit post modal -->
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal">
-                Edit Post
-            </button>
+            <!-- Contet in nice card -->
+            <hr>
+            <p class="card-text"><%= post.content %></p>
+            <hr>
+            
+            <!-- row with link to user profile (left), and post link (right) -->
+            <div class="row">
+                <div class="col">
+                    <a href="/profile/<%= post.username %>">
+                        Author: <%= post.username %>
+                    </a>
+                </div>
 
-            <!-- editPost partial -->
-            <%- include ("editPost.ejs", {post: post, currentUser: currentUser}) %>
+                <div class="col">
+                <!-- if current user is profile user -->
+                <% if (currentUser && currentUser.username === post.username) { %>
+                    <div class="row float-right">
+                        <!-- edit -->
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal-<%= post._id %>">
+                            Edit
+                        </button>
 
-            <!-- restful route for delete -->
-            <form action="/profile/<%= post.username %>/<%= post._id %>?_method=DELETE" method="post">
-            <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-        </div>
-    <% } %>
-    
-    <!-- row with link to user profile (left), and post link (right) -->
-    <div class="row">
-        <div class="col">
-            <a href="/profile/<%= post.username %>">
-                Author: <%= post.username %>
-            </a>
-        </div>
-        <div class="col">
-            <a class="float-right" href="/profile/<%= post.username %>/<%= post._id %>">
-                Post ID: <%= post._id %>
-            </a>
+                        <!-- editPost partial -->
+                        <%- include ("editPost.ejs", {post: post, currentUser: currentUser}) %>
+
+                        <!-- restful route for delete -->
+                        <form action="/profile/<%= post.username %>/<%= post._id %>?_method=DELETE" method="post">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                <% } %>
+                </div>
+            </div>
         </div>
     </div>
+</div>
+
+    <!-- Comments -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Comments</h5>
+                <% if (currentUser) { %>
+                    <form action="/profile/<%= post.username %>/<%= post._id %>/addComment" method="post">
+                        <div class="form-group">
+                            <textarea class="form-control" id="text" name="text" rows="3" placeholder="New Comment" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                <% } %>
+
+                <hr>
+
+                <% if (post.comments) { %>
+                    <% for (var i = 0; i < post.comments.length; i++) { %>
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- row username link, date -->
+                                <div class="row">
+                                    <div class="col">
+                                        <a href="/profile/<%= post.comments[i].username %>">
+                                            <%= post.comments[i].username %>
+                                        </a>
+                                    </div>
+
+                                    <div class="col">
+                                        <%= post.comments[i].date %>
+                                    </div>
+                                </div>
+
+                                <hr class="col-md-12">
+
+                                <p class="card-text"><%= post.comments[i].text %></p>
+                                
+
+                                <!-- if current user is profile user or comment owner, show delete button-->
+                                <% if (currentUser && (currentUser.username === post.username || currentUser.username === post.comments[i].username)) { %>
+                                    <form action="/profile/<%= post.username %>/<%= post._id %>/<%= post.comments[i]._id %>?_method=DELETE" method="post">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+        </div>
     </div>
 </div>
