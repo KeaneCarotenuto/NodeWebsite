@@ -207,6 +207,9 @@ app.get('/feed', (req, res) => {
             return new Date(b.date) - new Date(a.date);
         });
 
+        // reverse posts
+        allPosts.reverse();
+
         console.log("Posts: " + allPosts.length);
 
         res.render('feed.ejs', {currentUser : req.user, allUsers : allUsers, allPosts : allPosts});
