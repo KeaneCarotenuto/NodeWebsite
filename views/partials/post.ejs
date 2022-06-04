@@ -1,8 +1,8 @@
 <!-- use fish and post schema above to make card -->
 <!-- row, post card on left, scrollable comments section on right -->
-<div class="row">
+<div data-id="<%= post._id %>" class="row">
     <div class="col-md-8">
-        <div class="card">
+        <div id="POSTID-<%= post._id %>" class="card">
             <div class="card-body">
                 <!-- row with title and date -->
                 <div class="row">
@@ -75,26 +75,26 @@
                 </div>
 
                 <div class="col">
-                <!-- if current user is profile user or admin-->
-                <% if (currentUser && (currentUser.username === post.username || currentUser.admin == true)) { %>
-                    <div class="row float-right">
-                        <!-- only edit if owner -->
-                        <% if (currentUser && currentUser.username === post.username) { %>
-                            <!-- edit -->
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal-<%= post._id %>">
-                                Edit
-                            </button>
+                    <!-- if current user is profile user or admin-->
+                    <% if (currentUser && (currentUser.username === post.username || currentUser.admin == true)) { %>
+                        <div class="row float-right">
+                            <!-- only edit if owner -->
+                            <% if (currentUser && currentUser.username === post.username) { %>
+                                <!-- edit -->
+                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal-<%= post._id %>">
+                                    Edit
+                                </button>
 
-                            <!-- editPost partial -->
-                            <%- include ("editPost.ejs", {post: post, currentUser: currentUser}) %>
-                        <% } %>
+                                <!-- editPost partial -->
+                                <%- include ("editPost.ejs", {post: post, currentUser: currentUser}) %>
+                            <% } %>
 
-                        <!-- restful route for delete -->
-                        <form action="/profile/<%= post.username %>/<%= post._id %>?_method=DELETE" method="post">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </div>
-                <% } %>
+                            <!-- restful route for delete -->
+                            <form action="/profile/<%= post.username %>/<%= post._id %>?_method=DELETE" method="post">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -102,8 +102,8 @@
 </div>
 
     <!-- Comments -->
-    <div class="col-md-4">
-        <div class="card">
+    <div class="col-md-4" style="overflow-y: auto;">
+        <div id="COMMENTSID-<%= post._id %>" class="card" style="height:auto;">
             <div class="card-body">
                 <h5 class="card-title">Comments</h5>
                 <% if (currentUser) { %>
@@ -157,3 +157,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    // find all elements with data-id attribute
+    var elements = document.querySelectorAll('[data-id]');
+
+    // for each element, get the value of the data-id attribute, find a matching POSTID and COMMENTSID
+    for (var i = 0; i < elements.length; i++) {
+
+        var element = elements[i];
+        var id = element.getAttribute('data-id');
+        var card = document.getElementById('POSTID-' + id);
+        var comments = document.getElementById('COMMENTSID-' + id);
+
+        // set the height of the comments to be the same as the card
+        comments.style.height = card.offsetHeight + 'px';
+    }
+</script>
