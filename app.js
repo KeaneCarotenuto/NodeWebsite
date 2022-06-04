@@ -114,7 +114,13 @@ const UserSchema = new mongoose.Schema({
     email: String,
 
     //list of post
-    posts: [postSchema]
+    posts: [postSchema],
+
+    // admin
+    admin: {
+        type: Boolean,
+        default: false
+    }
 });
 
 //add passport-local-mongoose plugin
@@ -181,6 +187,7 @@ app.get('/feed', (req, res) => {
         var allUsers = [];
         var allPosts = [];
 
+        // get all users in list
         users.forEach(function(user) {
             allUsers.push(user);
             console.log(user.username);
@@ -204,14 +211,6 @@ app.get('/feed', (req, res) => {
 
         res.render('feed.ejs', {currentUser : req.user, allUsers : allUsers, allPosts : allPosts});
     });
-});
-
-app.get('/fullywhite', (req,res) => {
-	createCat('Fluffy', 2, 'white');
-});
-
-app.get('/socksblack', (req,res) => {
-	createCat('Socks', 2, 'black');
 });
 
 //this user profile
@@ -286,7 +285,7 @@ app.delete('/profile/:username', (req,res) => {
     var username = req.params.username;
 
     // check if user is logged in and if they are the same user
-    if(!req.isAuthenticated() || req.user.username != username){
+    if(!req.isAuthenticated() || (req.user.username != username && req.user.admin == false)){
         res.redirect('/');
         return;
     }
@@ -464,7 +463,7 @@ app.delete('/profile/:username/:id', (req, res) => {
         else{
             console.log(user);
             //check if current user is the owner of the post
-            if (user.username != req.user.username){
+            if (user.username != req.user.username && req.user.admin == false){
                 return res.send("Error: You are not the owner of this post");
             }
 
@@ -582,7 +581,7 @@ app.delete('/profile/:username/:id/:commentid', (req,res) => {
             var comment = post.comments.find(comment => comment._id == commentid);
 
             // check if current user is the owner of the comment or owner of the post
-            if (comment.username != req.user.username && post.username != req.user.username){
+            if (comment.username != req.user.username && post.username != req.user.username && req.user.admin == false){
                 return res.send("Error: You are not the owner of this comment");
             }
 

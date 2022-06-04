@@ -6,45 +6,50 @@
   <!-- cenetered welcome jumbo with username-->
   <div class="jumbotron text-center">
     
+    <!-- if valid user or admin  -->
     <!-- edit profile button if current user is profile user-->
     <% if (currentUser && currentUser.username === profileUser.username) { %>
-    <h1>Welcome <%= profileUser.username %></h1>
-    <button id="storedUsername" type="button" class="btn btn-primary" data-username="<%= profileUser.username %>" data-toggle="modal" data-target="#editProfileModal" onclick="function reset(){document.getElementById('newUsername').value = document.getElementById('storedUsername').dataset.username;}reset();">
-      Edit Username
-    </button>
-
-    <!-- delete account button with confirm modal-->
-    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteAccountModal">
-      Delete Account
-    </button>
-
-    <!-- delete account modal using form -->
-    <div class="modal fade" id="deleteAccountModal" tabindex="-1" role="dialog" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <p>Are you sure you want to delete your account?</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <form action="/profile/<%= profileUser.username %>?_method=DELETE" method="post">
-              <button type="submit" class="btn btn-danger">Delete Account</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
+      <h1>Welcome <%= profileUser.username %></h1>
+      <button id="storedUsername" type="button" class="btn btn-primary" data-username="<%= profileUser.username %>" data-toggle="modal" data-target="#editProfileModal" onclick="function reset(){document.getElementById('newUsername').value = document.getElementById('storedUsername').dataset.username;}reset();">
+        Edit Username
+      </button>
     <% } else { %>
       <h1>Welcome to <%= profileUser.username %>'s Profile!</h1>
     <% } %>
+    
+    <!-- if valid user or admin  -->
+    <% if (currentUser && (currentUser.username === profileUser.username || currentUser.admin == true)) { %>
+      <!-- delete account button with confirm modal-->
+      <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteAccountModal">
+        Delete Account
+      </button>
+
+      <!-- delete account modal using form -->
+      <div class="modal fade" id="deleteAccountModal" tabindex="-1" role="dialog" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to delete your account?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <form action="/profile/<%= profileUser.username %>?_method=DELETE" method="post">
+                <button type="submit" class="btn btn-danger">Delete Account</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+
+    
   </div>
 
   <!-- Use bootstrap grid system to create a responsive page! -->

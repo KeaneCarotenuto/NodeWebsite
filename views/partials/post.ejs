@@ -75,16 +75,19 @@
                 </div>
 
                 <div class="col">
-                <!-- if current user is profile user -->
-                <% if (currentUser && currentUser.username === post.username) { %>
+                <!-- if current user is profile user or admin-->
+                <% if (currentUser && (currentUser.username === post.username || currentUser.admin == true)) { %>
                     <div class="row float-right">
-                        <!-- edit -->
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal-<%= post._id %>">
-                            Edit
-                        </button>
+                        <!-- only edit if owner -->
+                        <% if (currentUser && currentUser.username === post.username) { %>
+                            <!-- edit -->
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editPostModal-<%= post._id %>">
+                                Edit
+                            </button>
 
-                        <!-- editPost partial -->
-                        <%- include ("editPost.ejs", {post: post, currentUser: currentUser}) %>
+                            <!-- editPost partial -->
+                            <%- include ("editPost.ejs", {post: post, currentUser: currentUser}) %>
+                        <% } %>
 
                         <!-- restful route for delete -->
                         <form action="/profile/<%= post.username %>/<%= post._id %>?_method=DELETE" method="post">
@@ -139,7 +142,7 @@
                                 
 
                                 <!-- if current user is profile user or comment owner, show delete button-->
-                                <% if (currentUser && (currentUser.username === post.username || currentUser.username === post.comments[i].username)) { %>
+                                <% if (currentUser && (currentUser.username === post.username || currentUser.username === post.comments[i].username || currentUser.admin == true)) { %>
                                     <form action="/profile/<%= post.username %>/<%= post._id %>/<%= post.comments[i]._id %>?_method=DELETE" method="post">
                                         <button type="submit" class="btn btn-danger">Delete</button>
                                     </form>

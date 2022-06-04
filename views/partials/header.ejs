@@ -44,7 +44,7 @@
             <% if (currentUser) { %>
                 <!-- profile -->
                 <a class="nav-link" href="/profile">
-                    <%- currentUser.username %> <i class="fa-solid fa-user"></i>
+                    <%- currentUser.username %> <% if (currentUser.admin == true) { %>[ADMIN]<% } %> <i class="fa-solid fa-user"></i>
                 </a>
                 <!-- log out -->
                 <a class="nav-link" href="/logout">
