@@ -202,17 +202,41 @@ app.get('/feed', (req, res) => {
             }
         }
 
-        //sort posts by date
-        allPosts.sort(function(a, b){
-            return new Date(b.date) - new Date(a.date);
+        // make 2d array of posts split by date
+        var postsByDate = [];
+        var temp = [];
+        var tempDate = "";
+        for (var i = 0; i < allPosts.length; i++){
+            if (tempDate != allPosts[i].date){
+                tempDate = allPosts[i].date;
+                temp = [];
+                temp.push(allPosts[i]);
+                postsByDate.push(temp);
+            }
+            else{
+                temp.push(allPosts[i]);
+                postsByDate[postsByDate.length-1] = temp;
+            }
+        }
+
+        // sort posts by date
+        postsByDate.sort(function(a, b) {
+            return new Date(a[0].date) - new Date(b[0].date);
         });
 
-        // reverse posts
-        allPosts.reverse();
+        // export postsByDate to 1d array
+        var posts = [];
+        for (var i = 0; i < postsByDate.length; i++){
+            for (var j = 0; j < postsByDate[i].length; j++){
+                posts.push(postsByDate[i][j]);
+            }
+        }
 
+        // reverse posts array
+        posts.reverse();
         console.log("Posts: " + allPosts.length);
 
-        res.render('feed.ejs', {currentUser : req.user, allUsers : allUsers, allPosts : allPosts});
+        res.render('feed.ejs', {currentUser : req.user, allUsers : allUsers, allPosts : posts});
     });
 });
 
