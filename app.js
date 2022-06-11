@@ -86,7 +86,8 @@ const commentSchema = new mongoose.Schema({
 //create fishing post schema (title, description, fish info, image, date, username)
 const postSchema = new mongoose.Schema({
     title: String,
-    content: String,
+    shortDescription: String,
+    longDescription: String,
     fishInfo: fishInfoSchema,
     image: String,
     date: String,
@@ -361,7 +362,8 @@ app.post('/newpost', (req, res) => {
     }
 
     var title = req.body.title;
-    var content = req.body.content;
+    var shortDescription = req.body.shortDescription;
+    var longDescription = req.body.longDescription;
     var fishInfospecies = req.body.species;
     var fishInfolength = req.body.length;
     var fishInfoweight = req.body.weight;
@@ -381,7 +383,8 @@ app.post('/newpost', (req, res) => {
 
     var newPost = new Post({
         title: title,
-        content: content,
+        shortDescription: shortDescription,
+        longDescription: longDescription,
         fishInfo: newFish,
         image: image,
         date: date,
@@ -419,7 +422,8 @@ app.put('/profile/:username/:id', (req,res) => {
     var username = req.params.username;
     var postid = req.params.id;
     var title = req.body.title;
-    var content = req.body.content;
+    var shortDescription = req.body.shortDescription;
+    var longDescription = req.body.longDescription;
     var fishInfospecies = req.body.species;
     var fishInfolength = req.body.length;
     var fishInfoweight = req.body.weight;
@@ -428,7 +432,7 @@ app.put('/profile/:username/:id', (req,res) => {
         image = "";
     };
 
-    console.log("username: " + username + " postid: " + postid + " title: " + title + " content: " + content + " fishInfospecies: " + fishInfospecies + " fishInfolength: " + fishInfolength + " fishInfoweight: " + fishInfoweight + " image: " + image);
+    console.log("username: " + username + " postid: " + postid + " title: " + title + " shortDescription: " + shortDescription + " longDescription: " + longDescription + " fishInfospecies: " + fishInfospecies + " fishInfolength: " + fishInfolength + " fishInfoweight: " + fishInfoweight + " image: " + image);
 
     User.findOne({username: username}, (err, user) => {
         if (err) {
@@ -449,7 +453,8 @@ app.put('/profile/:username/:id', (req,res) => {
             var post = user.posts.find(post => post._id == postid);
             
             post.title = title;
-            post.content = content;
+            post.shortDescription = shortDescription;
+            post.longDescription = longDescription;
             post.fishInfo.species = fishInfospecies;
             post.fishInfo.length = fishInfolength;
             post.fishInfo.weight = fishInfoweight;
@@ -534,7 +539,7 @@ app.get('/profile/:username/:id', (req, res) => {
 
             var post = user.posts.find(post => post._id == postid);
             console.log("post: " + post);
-            res.render('post.ejs', {post: post, currentUser: req.user});
+            res.render('post.ejs', {post: post, currentUser: req.user, showLong: true});
         }
     });
 });

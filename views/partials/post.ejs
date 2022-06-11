@@ -63,8 +63,16 @@
 
             <!-- Contet in nice card -->
             <hr>
-            <p class="card-text"><%= post.content %></p>
+            <h5 class="card-title">Short Description</h5>
+            <p class="card-text"><%= post.shortDescription %></p>
             <hr>
+
+            <!-- Optional Long description -->
+            <% if (locals.showLong && showLong) { %>
+                <h5 class="card-title">Long Description</h5>
+                <p class="card-text"><%= post.longDescription %></p>
+                <hr>
+            <% } %>
             
             <!-- row with link to user profile (left), and post link (right) -->
             <div class="row">
